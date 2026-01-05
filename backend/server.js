@@ -1,5 +1,6 @@
 const express = require("express");
 const dotenv = require("dotenv");
+const supportAgent = require("./agent/supportAgent");
 
 // 2️⃣ Load environment variables
 dotenv.config();
@@ -17,6 +18,9 @@ app.get("/health", (req, res) => {
 
 // 6️⃣ Port configuration
 const PORT = process.env.PORT || 5000;
+
+supportAgent("What is your return policy?")
+  .then(console.log);
 
 // 7️⃣ Start server
 app.listen(PORT, () => {
