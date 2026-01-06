@@ -1,24 +1,34 @@
+#pragma warning disable SKEXP0010
+using Microsoft.SemanticKernel;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services
+// 🔹 Semantic Kernel + Ollama (OpenAI-compatible)
+builder.Services.AddSingleton(sp =>
+{
+    var kernelBuilder = Kernel.CreateBuilder();
+
+    kernelBuilder.AddOpenAIChatCompletion(
+        modelId: "qwen2.5:3b",
+        endpoint: new Uri("http://localhost:11434/v1"),
+        apiKey: "ollama" // dummy value
+    );
+
+    return kernelBuilder.Build();
+});
+
+// 🔹 ASP.NET Core services
 builder.Services.AddControllers();
-// builder.Services.AddSingleton<Microsoft.SemanticKernel.Kernel>();
-
-
-// 🔹 Swagger services (IMPORTANT)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// 🔹 Enable Swagger ALWAYS (for now)
+// 🔹 Swagger
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// Middleware
 app.UseAuthorization();
-
-// Map controllers
 app.MapControllers();
 
 app.Run();

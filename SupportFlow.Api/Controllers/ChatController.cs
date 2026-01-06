@@ -1,3 +1,4 @@
+using Microsoft.SemanticKernel;
 using Microsoft.AspNetCore.Mvc;
 
 namespace SupportFlow.Api.Controllers
@@ -6,13 +7,29 @@ namespace SupportFlow.Api.Controllers
     [Route("api/chat")]
     public class ChatController : ControllerBase
     {
-        [HttpPost]
-        public IActionResult Chat([FromBody] ChatRequest request)
+        private readonly Kernel _kernel;
+
+        public ChatController(Kernel kernel)
         {
+            _kernel = kernel;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Chat([FromBody] ChatRequest request)
+        {
+            var prompt = $"""
+            You are an e-commerce customer support assistant.
+            Be polite, clear, and helpful.
+
+            User message:
+            {request.Message}
+            """;
+
+            var result = await _kernel.InvokePromptAsync(prompt);
+
             return Ok(new
             {
-                reply = $"[AI placeholder] I received: {request.Message}"
-
+                reply = result.ToString()
             });
         }
     }
