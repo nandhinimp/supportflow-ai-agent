@@ -2,6 +2,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services
 builder.Services.AddControllers();
+builder.Services.AddSingleton<Microsoft.SemanticKernel.Kernel>();
+
 
 // 🔹 Swagger services (IMPORTANT)
 builder.Services.AddEndpointsApiExplorer();
