@@ -26,6 +26,8 @@ builder.Services.AddSingleton<OrderService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton<PolicyService>();
+
 
 var app = builder.Build();
 
