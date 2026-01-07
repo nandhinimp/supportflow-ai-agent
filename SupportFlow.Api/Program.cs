@@ -27,6 +27,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<PolicyService>();
+builder.Services.AddSingleton<EscalationService>();
 
 
 var app = builder.Build();
