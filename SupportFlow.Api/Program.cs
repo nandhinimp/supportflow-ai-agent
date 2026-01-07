@@ -1,5 +1,6 @@
 #pragma warning disable SKEXP0010
 using Microsoft.SemanticKernel;
+using SupportFlow.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,7 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton<OrderService>();
 
 var app = builder.Build();
 

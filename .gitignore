@@ -1,0 +1,36 @@
+
+bin/
+obj/
+
+# IDE / Editor
+
+.vs/
+.vscode/
+
+# OS files
+
+.DS_Store
+Thumbs.db
+
+
+*.log
+
+.env
+appsettings.Development.json
+appsettings.Local.json
+
+
+.ollama/
+
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+
+# Terraform / IaC (later)
+
+.terraform/
+*.tfstate
+*.tfstate.*
