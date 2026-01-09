@@ -24,10 +24,23 @@ builder.Services.AddSingleton<OrderService>();
 
 // 🔹 ASP.NET Core services
 builder.Services.AddControllers();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<PolicyService>();
 builder.Services.AddSingleton<EscalationService>();
+builder.Services.AddSingleton<ConversationMemory>();
+
 
 
 var app = builder.Build();
@@ -35,6 +48,8 @@ var app = builder.Build();
 // 🔹 Swagger
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.UseCors("AllowFrontend"); // 👈 MUST be here
 
 app.UseAuthorization();
 app.MapControllers();

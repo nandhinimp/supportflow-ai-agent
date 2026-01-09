@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.SemanticKernel;
 using SupportFlow.Api.Services;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace SupportFlow.Api.Controllers
 {
@@ -13,29 +14,37 @@ namespace SupportFlow.Api.Controllers
         private readonly OrderService _orderService;
         private readonly PolicyService _policyService;
         private readonly EscalationService _escalationService;
+        private readonly ConversationMemory _memory;
 
         public ChatController(
             Kernel kernel,
             OrderService orderService,
             PolicyService policyService,
-            EscalationService escalationService)
+            EscalationService escalationService,
+            ConversationMemory memory)
         {
             _kernel = kernel;
             _orderService = orderService;
             _policyService = policyService;
             _escalationService = escalationService;
+            _memory = memory;
         }
 
         [HttpPost]
         public async Task<IActionResult> Chat([FromBody] ChatRequest request)
         {
+            // ✅ Save user message into memory
+            _memory.AddMessage(request.ThreadId, $"User: {request.Message}");
+
+            // ✅ Get full conversation history
+            var history = _memory.GetHistory(request.ThreadId);
+
             var originalMessage = request.Message;
             var message = originalMessage.ToLower();
 
             /* -------------------------------------------------
              * 1️⃣ ESCALATION CHECK (FIRST – safety comes first)
              * ------------------------------------------------- */
-
             string[] angryKeywords =
             {
                 "angry", "frustrated", "worst", "bad service",
@@ -61,7 +70,6 @@ namespace SupportFlow.Api.Controllers
             /* -------------------------------------------------
              * 2️⃣ ORDER TOOL CHECK
              * ------------------------------------------------- */
-
             var match = Regex.Match(message, @"\b\d{4,}\b");
             string? orderInfo = null;
 
@@ -88,7 +96,6 @@ namespace SupportFlow.Api.Controllers
             /* -------------------------------------------------
              * 3️⃣ POLICY (RAG-style) CHECK
              * ------------------------------------------------- */
-
             string? policyInfo = null;
 
             if (message.Contains("return"))
@@ -99,23 +106,26 @@ namespace SupportFlow.Api.Controllers
             /* -------------------------------------------------
              * 4️⃣ AI RESPONSE SYNTHESIS
              * ------------------------------------------------- */
-
             var prompt = $"""
             You are a professional e-commerce customer support agent.
 
-            Customer message:
-            {originalMessage}
+            Conversation so far:
+            {history}
+
+            Current user message:
+            {request.Message}
 
             {(policyInfo != null ? $"Return Policy:\n{policyInfo}\n" : "")}
             {(orderInfo != null ? $"Order Status:\n{orderInfo}\n" : "")}
 
-            You MUST address ALL topics mentioned by the customer.
-            If both return policy and order status are present,
-            clearly answer BOTH in your response.
-            Respond politely and clearly.
+            Use the conversation context to answer follow-up questions.
+            Respond clearly and politely.
             """;
 
             var result = await _kernel.InvokePromptAsync(prompt);
+
+            // ✅ Save assistant reply into memory
+            _memory.AddMessage(request.ThreadId, $"Assistant: {result}");
 
             return Ok(new
             {
@@ -124,11 +134,9 @@ namespace SupportFlow.Api.Controllers
         }
     }
 
-    /* -------------------------------------------------
-     * Request Model
-     * ------------------------------------------------- */
     public class ChatRequest
     {
         public required string Message { get; set; }
+        public required string ThreadId { get; set; }
     }
 }
